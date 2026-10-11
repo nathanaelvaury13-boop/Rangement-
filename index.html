@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#172554">
+<title>TiroirScan</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#172033;background:#f4f6fb}
+*{box-sizing:border-box}body{margin:0}header{background:#172554;color:white;padding:22px 18px 18px}
+h1{margin:0;font-size:26px}header p{margin:5px 0 0;color:#dbeafe;font-size:14px}
+main{max-width:720px;margin:auto;padding:16px; padding-bottom:40px}
+nav{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+nav button,.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:700;background:#dbeafe;color:#172554;font-size:14px}
+nav button.active,.btn.primary{background:#1d4ed8;color:white}
+.card{background:white;border:1px solid #e3e8f2;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 3px 14px #0f172a08}
+h2{font-size:18px;margin:0 0 12px}.muted{color:#64748b;font-size:13px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 5px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}
+textarea{min-height:70px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.btn{cursor:pointer}.btn.secondary{background:#e2e8f0;color:#172033}.btn.danger{background:#fee2e2;color:#991b1b}
+.hidden{display:none!important}.result{padding:12px;border-radius:12px;background:#f8fafc;margin-top:10px}
+.item{display:flex;justify-content:space-between;gap:12px;align-items:start;border-bottom:1px solid #e2e8f0;padding:12px 0}
+.item:last-child{border-bottom:0}.item strong{display:block}.pill{display:inline-block;border-radius:999px;background:#e0e7ff;color:#3730a3;padding:3px 8px;font-size:12px;margin-top:5px}
+#camera{width:100%;border-radius:12px;background:#0f172a;max-height:300px;object-fit:cover}
+.stat{font-size:28px;font-weight:800}.empty{text-align:center;padding:20px;color:#64748b}
+@media(max-width:420px){.grid{grid-template-columns:1fr}nav button{flex:1}}
+</style>
+</head>
+<body>
+<header><h1>📦 TiroirScan</h1><p>Scanne, classe et retrouve tes affaires.</p></header>
+<main>
+<nav>
+<button class="active" data-tab="home">Accueil</button>
+<button data-tab="add">Ajouter</button>
+<button data-tab="search">Rechercher</button>
+<button data-tab="stock">Mon stock</button>
+</nav>
+<section id="home" class="page">
+<div class="card"><h2>Mon rangement</h2><div class="grid"><div><div class="stat" id="count">0</div><div class="muted">articles enregistrés</div></div><div><div class="stat" id="locations">0</div><div class="muted">emplacements utilisés</div></div></div></div>
+<div class="card"><h2>Commencer</h2><p>Ajoute un article en scannant son code-barres ou en saisissant son numéro. Les fiches restent enregistrées sur ce téléphone.</p><div class="actions"><button class="btn primary" onclick="showTab('add')">＋ Ajouter un article</button><button class="btn secondary" onclick="showTab('search')">⌕ Retrouver un article</button></div></div>
+<div class="card"><h2>À savoir</h2><p class="muted">La recherche automatique utilise Open Food Facts, surtout utile pour les aliments et certains produits de grande consommation. Pour les autres objets, tu peux compléter la fiche manuellement. Les informations en ligne nécessitent Internet ; les articles déjà enregistrés restent consultables hors ligne.</p></div>
+</section>
+<section id="add" class="page hidden">
+<div class="card"><h2>Scanner un code-barres</h2><p class="muted">Autorise la caméra si le navigateur le permet. Le scan caméra nécessite généralement une page sécurisée HTTPS.</p>
+<video id="camera" class="hidden" playsinline></video><div class="actions"><button class="btn primary" id="startScan">Ouvrir la caméra</button><button class="btn secondary hidden" id="stopScan">Arrêter</button></div>
+<label for="barcode">Code-barres</label><input id="barcode" inputmode="numeric" placeholder="Scanne ou saisis le code-barres">
+<div class="actions"><button class="btn primary" id="lookup">Rechercher le produit en ligne</button></div><div id="lookupMsg" class="muted" aria-live="polite"></div></div>
+<div class="card"><h2>Fiche article</h2><input id="editId" type="hidden">
+<label for="name">Nom de l'article *</label><input id="name" placeholder="Ex. Piles AA, tournevis..." required>
+<div class="grid"><div><label for="brand">Marque</label><input id="brand" placeholder="Marque"></div><div><label for="ref">Référence</label><input id="ref" placeholder="Modèle / référence"></div></div>
+<label for="category">Catégorie</label><input id="category" placeholder="Ex. outils, cuisine, électronique">
+<div class="grid"><div><label for="place">Meuble / zone</label><input id="place" placeholder="Garage, cuisine..."></div><div><label for="drawer">Tiroir</label><input id="drawer" placeholder="Tiroir 3"></div></div>
+<div class="grid"><div><label for="compartment">Compartiment</label><input id="compartment" placeholder="B, boîte rouge..."></div><div><label for="qty">Quantité</label><input id="qty" type="number" min="0" value="1"></div></div>
+<label for="notes">Notes</label><textarea id="notes" placeholder="Dimensions, état, détails..."></textarea>
+<div class="actions"><button class="btn primary" id="save">Enregistrer l'article</button><button class="btn secondary" id="clear">Nouvelle fiche</button></div><p class="muted">Les champs de rangement sont personnalisables : utilise-les comme tu veux.</p></div>
+</section>
+<section id="search" class="page hidden"><div class="card"><h2>Retrouver un article</h2><label for="query">Nom, code-barres, marque ou emplacement</label><input id="query" placeholder="Ex. tournevis, tiroir 3..."><div id="searchResults"></div></div></section>
+<section id="stock" class="page hidden"><div class="card"><h2>Tout mon stock</h2><div id="stockList"></div><div class="actions"><button class="btn secondary" id="export">Exporter une sauvegarde JSON</button><label class="btn secondary" for="importFile" style="margin:0;cursor:pointer">Importer une sauvegarde</label><input id="importFile" type="file" accept="application/json" class="hidden"></div><p class="muted">Conseil : exporte régulièrement une sauvegarde. Les données locales peuvent disparaître si tu effaces les données du navigateur ou désinstalles l'application.</p></div></section>
+</main>
+<script>
+const KEY='tiroirscan.items.v1'; let items=[]; let stream=null, scanTimer=null;
+try{items=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){items=[]}
+const $=id=>document.getElementById(id);
+function persist(){localStorage.setItem(KEY,JSON.stringify(items));render()}
+function showTab(tab){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==tab));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));if(tab==='stock')renderStock();if(tab==='search')renderSearch()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+function locationOf(x){return [x.place,x.drawer,x.compartment].filter(Boolean).join(' › ')||'Emplacement non renseigné'}
+function render(){ $('count').textContent=items.length;$('locations').textContent=new Set(items.map(locationOf).filter(x=>x!=='Emplacement non renseigné')).size;renderStock();renderSearch()}
+function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function cardHtml(x){return `<div class="item"><div><strong>${escapeHtml(x.name)}</strong><div class="muted">${escapeHtml([x.brand,x.ref,x.barcode].filter(Boolean).join(' · '))}</div><div class="pill">📍 ${escapeHtml(locationOf(x))}</div><div class="muted">Quantité : ${Number(x.qty)||0}${x.category?' · '+escapeHtml(x.category):''}</div></div><div class="actions" style="margin:0"><button class="btn secondary" onclick="editItem('${x.id}')">Modifier</button><button class="btn danger" onclick="deleteItem('${x.id}')">Supprimer</button></div></div>`}
+function renderStock(){if(!$('stockList'))return;$('stockList').innerHTML=items.length?items.slice().sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(cardHtml).join(''):'<div class="empty">Aucun article pour le moment. Ajoute ton premier article !</div>'}
+function renderSearch(){if(!$('searchResults'))return;const q=($('query').value||'').trim().toLocaleLowerCase('fr');const found=items.filter(x=>!q||[x.name,x.brand,x.ref,x.barcode,x.category,x.place,x.drawer,x.compartment,x.notes].join(' ').toLocaleLowerCase('fr').includes(q));$('searchResults').innerHTML=found.length?found.map(cardHtml).join(''):'<div class="empty">Aucun article trouvé.</div>'}
+$('query').addEventListener('input',renderSearch);
+function clearForm(){['editId','barcode','name','brand','ref','category','place','drawer','compartment','notes'].forEach(id=>$(id).value='');$('qty').value=1;$('lookupMsg').textContent=''}
+$('clear').onclick=clearForm;
+$('save').onclick=()=>{const name=$('name').value.trim();if(!name){alert('Ajoute au moins le nom de l’article.');return}const id=$('editId').value||String(Date.now())+Math.random().toString(16).slice(2,6);const old=items.find(x=>x.id===id)||{};const obj={id,name,barcode:$('barcode').value.trim(),brand:$('brand').value.trim(),ref:$('ref').value.trim(),category:$('category').value.trim(),place:$('place').value.trim(),drawer:$('drawer').value.trim(),compartment:$('compartment').value.trim(),qty:Math.max(0,Number($('qty').value)||0),notes:$('notes').value.trim(),updatedAt:new Date().toISOString()};items=items.filter(x=>x.id!==id);items.push(obj);persist();clearForm();showTab('stock');alert('Article enregistré sur ce téléphone.')}
+window.editItem=id=>{const x=items.find(a=>a.id===id);if(!x)return;showTab('add');$('editId').value=x.id;for(const k of ['barcode','name','brand','ref','category','place','drawer','compartment','qty','notes'])$(k).value=x[k]??'';window.scrollTo({top:0,behavior:'smooth'})}
+window.deleteItem=id=>{const x=items.find(a=>a.id===id);if(x&&confirm('Supprimer « '+x.name+' » ?')){items=items.filter(a=>a.id!==id);persist()}}
+$('lookup').onclick=async()=>{const code=$('barcode').value.trim();if(!code){$('lookupMsg').textContent='Saisis ou scanne un code-barres.';return}$('lookupMsg').textContent='Recherche en cours…';try{const r=await fetch('https://world.openfoodfacts.org/api/v2/product/'+encodeURIComponent(code)+'.json');if(!r.ok)throw Error('Réseau indisponible');const d=await r.json();if(d.status===1&&d.product){const p=d.product;$('name').value=p.product_name_fr||p.product_name||$('name').value;$('brand').value=p.brands||$('brand').value;$('category').value=(p.categories_tags||[]).slice(0,3).map(s=>s.replace(/^.*:/,'').replace(/-/g,' ')).join(', ')||$('category').value;$('ref').value=p.quantity||$('ref').value;$('lookupMsg').textContent='Produit trouvé. Vérifie les informations puis enregistre.'}else{$('lookupMsg').textContent='Produit non trouvé dans cette base. Complète la fiche manuellement.'}}catch(e){$('lookupMsg').textContent='Recherche impossible (connexion ou base indisponible). Tu peux saisir la fiche manuellement.'}};
+$('export').onclick=()=>{const blob=new Blob([JSON.stringify(items,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tiroirscan-sauvegarde.json';a.click();URL.revokeObjectURL(a.href)};
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data))throw Error();if(confirm('Remplacer les articles actuels par '+data.length+' articles importés ?')){items=data.filter(x=>x&&x.id&&x.name);persist();alert('Sauvegarde importée.')}}catch(err){alert('Fichier de sauvegarde invalide.')}e.target.value=''};
+$('startScan').onclick=async()=>{if(!('BarcodeDetector'in window)){alert('Le scan automatique n’est pas pris en charge par ce navigateur. Essaie Chrome à jour ou saisis le code-barres manuellement.');return}try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('camera').srcObject=stream;$('camera').classList.remove('hidden');$('stopScan').classList.remove('hidden');$('startScan').classList.add('hidden');await $('camera').play();const detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf','qr_code']});const scan=async()=>{if(!stream)return;try{const codes=await detector.detect($('camera'));if(codes.length){$('barcode').value=codes[0].rawValue;stopScan();$('lookup').click();return}}catch(e){}scanTimer=setTimeout(scan,250)};scan()}catch(e){alert('Impossible d’ouvrir la caméra. Vérifie les autorisations et utilise une page HTTPS.')}};
+function stopScan(){if(scanTimer)clearTimeout(scanTimer);if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('camera').classList.add('hidden');$('stopScan').classList.add('hidden');$('startScan').classList.remove('hidden')}
+$('stopScan').onclick=stopScan;
+render();
+</script>
+</body></html>
+  
